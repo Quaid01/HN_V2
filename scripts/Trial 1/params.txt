@@ -1,0 +1,27 @@
+sim_time = 10
+steps = 1500
+parameters = Dict{String, Any}(
+    "images" => [i1,i2],
+    "set" => part_data,
+    "sim_time" => sim_time,
+    "steps" => steps,
+    "iterations" => 1, #Num of times attempted
+    "num_agitations" => 5,
+    "scaling" => 1.0,
+    "delta" => -1* sim_time/steps,
+    # This is the region that we will provide and the machine must keep this region constant
+    # Will be a vector of tuples which are (row, col, state)
+    "initial_stimuli" => [(2,1,-1)]
+)
+
+Solution generated : i1
+
+i1 = [
+    1 1;
+    1 1;
+]
+
+i2 = [
+    1 1;
+    -1 -1;
+]

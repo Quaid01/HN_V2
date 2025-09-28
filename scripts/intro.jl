@@ -17,3 +17,8 @@ issues on GitHub, submitting feature requests,
 or even opening your own Pull Requests!
 """
 )
+sim_output_dir = mkpath(datadir("sims/"));
+data_input_dir = datadir("data_sets/");
+
+modules_path = projectdir() * "/src"
+push!(LOAD_PATH, modules_path)
