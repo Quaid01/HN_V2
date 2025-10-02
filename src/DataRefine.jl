@@ -1,8 +1,9 @@
 module DataRefine
 
 using Statistics
+using Dice
 
-export record_data, file_parser, dist_mean
+export record_data, file_parser, dist_mean, save_trajectories
 
 # Things that start with # are ignored when parsing
 function record_data(data::Dict{String, Any}, params::Dict{String, Any}, out_name)
@@ -73,6 +74,28 @@ function dist_mean(data)
         push!(results_processed, mean(s));
     end
     return results_processed;
+end
+
+function save_trajectories(traj_collection::Vector{Vector{Dice.Hybrid}},
+                           prefix::String,
+                           suffix::String)
+    # Save the trajectories in the Spin Reader format
+    # traj_collection is a collection of trajectories collected after
+    # agitations. We save each agitation in a separate file.
+    for (ind, traj) in enumerate(traj_collection)
+        out_file_name = prefix * "_$(ind)_" * suffix * ".dat"
+        open(out_file_name, "w") do outf
+            for (t, state) in enumerate(traj)
+                print(outf, "$t")
+                for (s, x) in zip(state[1], state[2])
+                    print(outf, " $s $x")
+                end
+                println(outf, "")
+            end
+        end
+        println("File $out_file_name is generated")
+    end
+    
 end
 
 end
