@@ -8,7 +8,11 @@ using PrettyTables
 export
     HN_Solver,
     get_HN_graph, 
-    HN_Solver_Traj
+    HN_Solver_Traj,
+    iterative_rotater_state,
+    iterative_rotater_list,
+    HN_cut_plotter,
+
 
 function get_HN_graph(images ::Vector{Matrix{Int}},
                                 scale ::Float64) ::SimpleWeightedGraph
@@ -136,5 +140,41 @@ function HN_Solver_Traj(parameters::Dict{String, Any}, debug::Bool = false)
     end
     return(state,traj_collection)
 end    
+
+function iterative_rotater_state(state, debug = false)
+    rotations = []
+    for i in state[2]
+        rotated = Dice.realign_hybrid(state, 1+i)
+        if debug
+            println("rotated by $i")
+            pretty_table(reshape(rotated[1],size(parameters["images"][1],1),size(parameters["images"][1],1)))
+        end
+        push!(rotations, rotated)
+    end
+    return rotations
+end
+
+function iterative_rotater_list(state, list, debug = false)
+    rotations = []
+    for i in list
+        rotated = Dice.realign_hybrid(state, 1+i)
+        if debug
+            println("rotated by $i")
+            pretty_table(reshape(rotated[1],size(parameters["images"][1],1),size(parameters["images"][1],1)))
+        end
+        push!(rotations, rotated)
+    end
+    return rotations
+end
+
+function HN_cut_plotter(params, state)
+    rot = iterative_rotater_state(sol[1])
+    g = get_HN_graph(params["images"],params["scaling"])
+    binary = [i[1] for i in rot]
+    x = sol[1][2]
+    y = [Dice.cut(g,s) for s in (rot[k][1] for k in 1:length(rot))]
+    p = scatter(x,y)
+    return p
+end
 
 end
