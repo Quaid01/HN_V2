@@ -4,6 +4,7 @@ using Graphs
 using SimpleWeightedGraphs
 using Dice 
 using PrettyTables
+using Plots
 
 export
     HN_Solver,
@@ -12,10 +13,10 @@ export
     iterative_rotater_state,
     iterative_rotater_list,
     HN_cut_plotter,
+    HN_og
 
 
-function get_HN_graph(images ::Vector{Matrix{Int}},
-                                scale ::Float64) ::SimpleWeightedGraph
+function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWeightedGraph
     part_data = vec(images[1]')
     graph_set = SimpleWeightedGraph(length(part_data))
         
@@ -24,7 +25,7 @@ function get_HN_graph(images ::Vector{Matrix{Int}},
             # EDIT HERE, i is origin, j is end. We need to do this multiplication for every image
             w = 0
             for i in images
-                w += i[og] * i[term] / 1
+                w += i[og] * i[term] / scale
             end
             add_edge!(graph_set, og, term, w)
         end
@@ -48,7 +49,8 @@ function HN_Solver(parameters::Dict{String, Any}, debug::Bool = false)
     S = parameters["images"] # Images
     time_total= parameters["sim_time"] # how long the sim is
     num_steps = parameters["steps"] # number of steps in the sim
-    delta_t = parameters["delta"] # dt
+    dt_sim = parameters["delta"] # dt
+    delta_t = time_total/num_steps
 
     # Make Graph
     graph_set = get_HN_graph(S, scaling)
@@ -74,7 +76,7 @@ function HN_Solver(parameters::Dict{String, Any}, debug::Bool = false)
         push!(pinned, (pos, stim[3]))
     end
     #println(state[1]
-    state = Dice.propagate_pinned(model.graph, num_steps, delta_t, model.coupling, state, pinned)
+    state = Dice.propagate_pinned(model.graph, num_steps, dt_sim, model.coupling, state, pinned)
     # Comment out the other part of the or conditional to ignore negative images
  #=   if (reshape(state[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
         -1 .*reshape(state[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
@@ -97,7 +99,8 @@ function HN_Solver_Traj(parameters::Dict{String, Any}, debug::Bool = false)
     S = parameters["images"] # Images
     time_total= parameters["sim_time"] # how long the sim is
     num_steps = parameters["steps"] # number of steps in the sim
-    delta_t = parameters["delta"] # dt
+    dt_sim = parameters["delta"] # dt
+    delta_t = time_total/num_steps
     traj_collection::Vector{Vector{Dice.Hybrid}} = []
 
     # Make Graph
@@ -124,7 +127,7 @@ function HN_Solver_Traj(parameters::Dict{String, Any}, debug::Bool = false)
         push!(pinned, (pos, stim[3]))
     end
     #println(state[1]
-    traj = Dice.trajectories_pinned(model.graph, num_steps, delta_t, model.coupling, state, pinned)
+    traj = Dice.trajectories_pinned(model.graph, num_steps, dt_sim, model.coupling, state, pinned)
     push!(traj_collection, traj)
     # Comment out the other part of the or conditional to ignore negative images
  #=   if (reshape(state[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
@@ -141,13 +144,13 @@ function HN_Solver_Traj(parameters::Dict{String, Any}, debug::Bool = false)
     return(state,traj_collection)
 end    
 
-function iterative_rotater_state(state, debug = false)
+function iterative_rotater_state(state, params, debug = false)
     rotations = []
     for i in state[2]
         rotated = Dice.realign_hybrid(state, 1+i)
         if debug
             println("rotated by $i")
-            pretty_table(reshape(rotated[1],size(parameters["images"][1],1),size(parameters["images"][1],1)))
+            pretty_table(reshape(rotated[1],size(params["images"][1],1),size(params["images"][1],1)))
         end
         push!(rotations, rotated)
     end
@@ -168,13 +171,51 @@ function iterative_rotater_list(state, list, debug = false)
 end
 
 function HN_cut_plotter(params, state)
-    rot = iterative_rotater_state(sol[1])
+    rot = iterative_rotater_state(state,params)
     g = get_HN_graph(params["images"],params["scaling"])
     binary = [i[1] for i in rot]
-    x = sol[1][2]
+    x = state[2]
     y = [Dice.cut(g,s) for s in (rot[k][1] for k in 1:length(rot))]
     p = scatter(x,y)
     return p
+end
+
+function HN_og(params)
+    scaling = params["scaling"] #Scaling coeff
+    S = params["images"] # Images
+    time_total= params["sim_time"] # how long the sim is
+    num_steps = params["steps"] # number of steps in the sim
+    dt_sim = params["delta"] # dt
+    delta_t = -1*time_total/num_steps
+
+    # Make Graph
+    graph_set = get_HN_graph(S, -1*scaling)
+    
+    # Making model
+    model = Dice.Model(graph_set, Dice.model_2_hybrid_coupling, delta_t)
+    # Making randomized initial state
+    num_vertices = Graphs.nv(model.graph)
+    
+    converged = 0
+    diverged = 0
+
+
+    pinned::Vector{Tuple{Int64, Int8}} = []
+    spins = Dice.get_random_configuration(num_vertices)
+    #println(reshape(state[1],size(parameters["images"][1],1),size(parameters["images"][1],1)))
+    for stim in params["initial_stimuli"]
+        # Every n entries is a column, thus taking # of columns and subtracting 1 brings you to where the column begins
+        # Adding 1 will bring you to the first entry in the column and so on for +k
+        pos = (stim[2]-1) * size(params["images"][1],1) + stim[1]
+        spins[pos] = stim[3]
+        push!(pinned, (pos, stim[3]))
+    end
+
+    for i in 1:1000
+        res = Dice.local_search_pinned(model.graph, spins, pinned)
+        spins = res
+    end
+    return spins
 end
 
 end

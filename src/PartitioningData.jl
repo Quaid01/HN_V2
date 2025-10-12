@@ -116,7 +116,7 @@ function delta_gradient(graph)
             w[node] += get_weight(graph, node, neighbor)
         end
     end
-    dt = 0.2 ./ w
+    dt = abs.(0.2 ./ w)
     return dt
 end
 
