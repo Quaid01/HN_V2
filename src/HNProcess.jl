@@ -13,7 +13,8 @@ export
     iterative_rotater_state,
     iterative_rotater_list,
     HN_cut_plotter,
-    HN_og
+    HN_og,
+    sol_finder
 
 
 function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWeightedGraph
@@ -216,6 +217,20 @@ function HN_og(params)
         spins = res
     end
     return spins
+end
+
+function sol_finder(state, params)
+    rots = iterative_rotater_state(state, params)
+    sol = []
+    for st in rots
+        if (reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)) in params["images"] ||
+            -1 .*reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)) in params["images"])
+            println("FOUND")
+            pretty_table(reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)))
+            push!(sol, st)
+        end
+    end
+    return sol
 end
 
 end
