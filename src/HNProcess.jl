@@ -14,7 +14,9 @@ export
     iterative_rotater_list,
     HN_cut_plotter,
     HN_og,
-    sol_finder
+    sol_finder,
+    hadamard_gen,
+    orthogonal_image_generator
 
 
 function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWeightedGraph
@@ -158,13 +160,13 @@ function iterative_rotater_state(state, params, debug = false)
     return rotations
 end
 
-function iterative_rotater_list(state, list, debug = false)
+function iterative_rotater_list(state, list, s, debug = false)
     rotations = []
     for i in list
         rotated = Dice.realign_hybrid(state, 1+i)
         if debug
             println("rotated by $i")
-            pretty_table(reshape(rotated[1],size(parameters["images"][1],1),size(parameters["images"][1],1)))
+            pretty_table(reshape(rotated[1],s,s))
         end
         push!(rotations, rotated)
     end
@@ -232,5 +234,50 @@ function sol_finder(state, params)
     end
     return sol
 end
+
+# Note, n must be an even power of 2 (divisible by 4)
+# n represents the size of the image (total pixels)
+# Creates a hadamard matrix of size n, which contains n images
+# Each image has size sqrt(n) by sqrt(n)
+function hadamard_gen(n::Int)
+    if !(n % 4 == 0 || n == 1 || n == 2)
+        throw("argument must be divisible by 4 (or equal to 1 or 2)")
+    end
+    k = Integer(log(n)/log(2))
+    global H = [1]
+    for i in 1:k
+        # Each time this runs, the resulting size doubles. 
+        r1 = hcat(H,H)
+        r2 = hcat(H,-1 .* H)
+        H_n = vcat(r1,r2)
+        H = H_n
+    end
+    
+    return H
+end
+
+# Creates a list of images using the hadamard_gen
+function orthogonal_image_generator(n::Int)::Vector{Matrix{Int64}}
+    had = hadamard_gen(n)
+    s =  Integer(sqrt(size(had,1)))
+    ims = []
+    for r in eachrow(had)
+        i = reshape(r,s,s)
+        push!(ims, i)
+    end
+    return ims
+end
+
+function orthogonal_image_generator(hada::Matrix)::Vector{Matrix{Int64}}
+    had = hada
+    s =  Integer(sqrt(size(had,1)))
+    ims = []
+    for r in eachrow(had)
+        i = reshape(r,s,s)
+        push!(ims, i)
+    end
+    return ims
+end
+
 
 end
