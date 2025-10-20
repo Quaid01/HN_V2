@@ -3,7 +3,7 @@ module DataRefine
 using Statistics
 using Dice
 
-export record_data, file_parser, dist_mean, save_trajectories
+export record_data, file_parser, dist_mean, save_trajectories, binary_image_visualizer
 
 # Things that start with # are ignored when parsing
 function record_data(data::Dict{String, Any}, params::Dict{String, Any}, out_name)
@@ -96,6 +96,23 @@ function save_trajectories(traj_collection::Vector{Vector{Dice.Hybrid}},
         println("File $out_file_name is generated")
     end
     
+end
+
+
+function binary_image_visualizer(image::Matrix, s::Int; k = false, d = false)
+    p = heatmap(image,
+                # framestyle = :box, # doesn't work
+                # framestyle = :none, # no boundary
+                legend = false,
+                color = cgrad([:black, :white]),
+                axis = false,
+                size = (s, s))
+    
+    # Save the plot to a PNG file
+    k && savefig(p, "binary_matrix_large.png")
+    
+    # Display the plot if running in a script
+    d && display(p)
 end
 
 end
