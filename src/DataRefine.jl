@@ -2,6 +2,7 @@ module DataRefine
 
 using Statistics
 using Dice
+using Plots
 
 export record_data, file_parser, dist_mean, save_trajectories, binary_image_visualizer
 
@@ -99,7 +100,7 @@ function save_trajectories(traj_collection::Vector{Vector{Dice.Hybrid}},
 end
 
 
-function binary_image_visualizer(image::Matrix, s::Int; k = false, d = false)
+function binary_image_visualizer(image::Matrix, s::Int, name; sav = false, d = false)
     p = heatmap(image,
                 # framestyle = :box, # doesn't work
                 # framestyle = :none, # no boundary
@@ -109,7 +110,7 @@ function binary_image_visualizer(image::Matrix, s::Int; k = false, d = false)
                 size = (s, s))
     
     # Save the plot to a PNG file
-    k && savefig(p, "binary_matrix_large.png")
+    sav && savefig(p, "$name.png")
     
     # Display the plot if running in a script
     d && display(p)

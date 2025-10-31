@@ -36,6 +36,7 @@ function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWei
     return graph_set
 end
 
+
 # Creating Agitator which uses agitations to improve convergence rates. The
 # index tells you the agitation count (1 being the first attempt, so no
 # reshuffles yet) The second index means one run was done and we reshuffle
@@ -279,5 +280,17 @@ function orthogonal_image_generator(hada::Matrix)::Vector{Matrix{Int64}}
     return ims
 end
 
+# Encodes objective function to maximize
+function objective_func_G(state, images)
+    s = 0
+    for i in images
+        for m in 1:length(state)
+            for n in 1:length(state)
+                s += state[m] * i[m] * state[n] * i[n]
+            end
+        end
+    end
+    return (s * 0.25)
+end
 
 end
