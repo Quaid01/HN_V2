@@ -5,6 +5,7 @@ using SimpleWeightedGraphs
 using Dice 
 using PrettyTables
 using Plots
+using Random
 
 export
     HN_Solver,
@@ -16,7 +17,12 @@ export
     HN_og,
     sol_finder,
     hadamard_gen,
-    orthogonal_image_generator
+    orthogonal_image_generator,
+    three_random_orthogonal_image,
+    lowest_cut_states,
+    objective_func_G,
+    lambda_gen
+
 
 
 function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWeightedGraph
@@ -28,7 +34,7 @@ function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWei
             # EDIT HERE, i is origin, j is end. We need to do this multiplication for every image
             w = 0
             for i in images
-                w += i[og] * i[term] / scale
+                w += i[og] * i[term] * scale
             end
             add_edge!(graph_set, og, term, w)
         end
@@ -36,6 +42,22 @@ function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Float64) ::SimpleWei
     return graph_set
 end
 
+function get_HN_graph(images ::Vector{Matrix{Int}}, scale ::Vector) ::SimpleWeightedGraph
+    part_data = vec(images[1]')
+    graph_set = SimpleWeightedGraph(length(part_data))
+        
+    for og in range(1,length(part_data) - 1)
+        for term in range(og+1,length(part_data))
+            # EDIT HERE, i is origin, j is end. We need to do this multiplication for every image
+            w = 0
+            for i in 1:length(images)
+                w += images[i][og] * images[i][term] * scale[i]
+            end
+            add_edge!(graph_set, og, term, w)
+        end
+    end
+    return graph_set
+end
 
 # Creating Agitator which uses agitations to improve convergence rates. The
 # index tells you the agitation count (1 being the first attempt, so no
@@ -174,13 +196,23 @@ function iterative_rotater_list(state, list, s, debug = false)
     return rotations
 end
 
-function HN_cut_plotter(params, state)
+function HN_cut_plotter(params, state, debug = false)
     rot = iterative_rotater_state(state,params)
     g = get_HN_graph(params["images"],params["scaling"])
     binary = [i[1] for i in rot]
     x = state[2]
     y = [Dice.cut(g,s) for s in (rot[k][1] for k in 1:length(rot))]
-    p = scatter(x,y)
+    p = Plots.scatter(x,y)
+    if debug
+        x_p = p[1][1][:x]
+        y_p = p[1][1][:y]
+        o = sortperm(y_p)
+        x_sorted = x_p[o]
+        y_sorted = y_p[o]
+        for i in 1:length(x_p)
+            println("($(x_sorted[i]),$(y_sorted[i]))")
+        end
+    end
     return p
 end
 
@@ -291,6 +323,71 @@ function objective_func_G(state, images)
         end
     end
     return (s * 0.25)
+end
+
+function three_random_orthogonal_image(N::Int) ::Vector{Matrix{Int64}}
+    s = Int(sqrt(N))
+    
+    # All ones
+    i1 = reshape(ones(N), s, s)
+    
+    # Creates half and half
+    i2 = copy(i1)
+    i2[1 : Int(N/2)] .= 1
+    i2[Int(N/2)+1 : N] .= -1
+    
+    # Random Orthogonal
+    i3 = copy(i2)
+    
+    # Randomly chooses positions to flip, r1 for first half, r2 for second
+    r1 = shuffle(1 : Int(N/2))[1:Int(N/4)]
+    r2 = shuffle(Int(N/2)+1 : N)[1:Int(N/4)]
+    
+    i3[r1] .= -1
+    i3[r2] .= 1
+    return [i1, i2, i3]
+end
+
+function lowest_cut_states(state, params; disp = false)
+    graph = get_HN_graph(params["images"],1.0)
+    r = iterative_rotater_state(state, params)
+    s = []
+    c_now = 999
+    for i in r
+        c_i = cut(graph, i)
+        if c_i < c_now
+            c_now = c_i
+        end
+    end
+    
+    for i in r
+        c = cut(graph, i)
+        if c == c_now
+            push!(s,i)
+        end
+    end
+
+    if disp
+        for i in s 
+            pretty_table(reshape(i[1],8,8))
+        end
+    end
+    return s
+end
+
+# Generates lambdas which guarentee all images to be equal in size
+function lambda_gen(images, scale = 1, debug = false)
+    A = zeros(length(images),length(images))
+    for i in 1:(length(images))
+        for k in i:(length(images))
+            D_ij = (vec(images[i])' * vec(images[k]))^2
+            A[i,k] = D_ij
+            A[k,i] = D_ij
+        end
+    end
+    res = scale*ones(length(images)) # change coeff if precision is not ideal
+    lambdas = A \ res
+    return lambdas
 end
 
 end
