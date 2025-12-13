@@ -101,7 +101,7 @@ end
 
 
 function binary_image_visualizer(image::Matrix, s::Int, name; sav = false, d = false)
-    p = heatmap(image,
+    p = heatmap(image[end:-1:1, :],
                 # framestyle = :box, # doesn't work
                 # framestyle = :none, # no boundary
                 legend = false,

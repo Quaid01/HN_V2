@@ -21,7 +21,8 @@ export
     three_random_orthogonal_image,
     lowest_cut_states,
     objective_func_G,
-    lambda_gen
+    lambda_gen,
+    unique_random_binary_images
 
 
 
@@ -254,14 +255,16 @@ function HN_og(params)
     return spins
 end
 
-function sol_finder(state, params)
+function sol_finder(state, params, d = false)
     rots = iterative_rotater_state(state, params)
     sol = []
     for st in rots
         if (reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)) in params["images"] ||
             -1 .*reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)) in params["images"])
             println("FOUND")
-            pretty_table(reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)))
+            if d
+                pretty_table(reshape(st[1],size(params["images"][1],1),size(params["images"][1],2)))
+            end
             push!(sol, st)
         end
     end
@@ -388,6 +391,19 @@ function lambda_gen(images, scale = 1, debug = false)
     res = scale*ones(length(images)) # change coeff if precision is not ideal
     lambdas = A \ res
     return lambdas
+end
+
+function unique_random_binary_images(num, cardinality)
+    images = []
+    i = 0
+    while i < num
+        v = rand((-1,1),cardinality)
+        if !(v in images || -1*v in images)
+            push!(images, v)
+            i += 1
+        end
+    end
+    return reshape.(images, Int(sqrt(cardinality)), Int(sqrt(cardinality)))
 end
 
 end
