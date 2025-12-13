@@ -180,9 +180,9 @@ println("\n Graph time! \n")
 
 
 sizes = ["64", "256"]
-convs = [exp_8x8_v2[1], exp_16x16_v2[1]]
-twos = [exp_8x8_v2[2], exp_16x16_v2[2]]
-hns = [exp_8x8_hn, exp_16x16_hn]
+convs = [exp_8x8_v2[1]/detail, exp_16x16_v2[1]/detail]
+twos = [exp_8x8_v2[2]/detail, exp_16x16_v2[2]/detail]
+hns = [exp_8x8_hn/detail, exp_16x16_hn/detail]
 
 # Note, others is impossible because of thm 6 proven. 
 
@@ -195,6 +195,7 @@ p = groupedbar(
     ylabel="Probability of Convergence",
     legendtitle="Images Found",
     legend = :outerright,
+    ylims = (0, 1.05),
     dpi = 400,
    
 )

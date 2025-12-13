@@ -29,15 +29,17 @@ parameters = Dict{String, Any}(
     "initial_stimuli" => [(1,1,1)]
 )
 
+println("V2 Time")
 convergences_256 = Dict{String, Any}(
     "image_count" => [],
     "conv_16" => [],
     "multiple_16" => []
 )
 s=10000
-times_done = 1
+times_done = 5
+image_max = 5
 elp = @elapsed begin
-    for p in 1:5
+    for p in 1:image_max
         println(p)
         conv_16 = 0
         twos_16 = 0 
@@ -70,7 +72,33 @@ end
 
 println("took $elp seconds")
 
-record_data(convergences_256, parameters, "16by16_rand_RawData_Weighted_val_$(s)_detail_$(times_done)")
+record_data(convergences_256, parameters, "16by16_rand_RawData_V2_Weighted_val_$(s)_detail_$(times_done)")
+
+println("HN Time")
+
+convergences_256_hn = Dict{String, Any}(
+    "image_count" => [],
+    "conv_16" => []
+)
+elp = @elapsed begin
+    for p in 1:image_max
+        println(p)
+        hn_conv_16 =0 
+        for i in 1:times_done
+            parameters["images"] = unique_random_binary_images(p,256)
+            r = HN_Solver(parameters)
+            if (reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
+                -1 .*reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
+                hn_conv_16 +=1 
+            end
+        end
+        push!(convergences_256_hn["image_count"], p)
+        push!(convergences_256_hn["conv_16"], hn_conv_16/times_done)
+    end
+end
+println("took $elp seconds")
+
+record_data(convergences_256_hn, parameters, "16by16_rand_RawData_HN_Weighted_val_$(s)_detail_$(times_done)")
 
 p = plot(convergences_256["image_count"], 
     convergences_256["conv_16"], 
@@ -93,4 +121,14 @@ plot!(
     markercolor=:orange,
     label="At least two (2+)"
 )
+
+plot!(
+    convergences_256_hn["image_count"],
+    convergences_256_hn["conv_16"],
+    marker=:diamond, 
+    markersize=3, 
+    markercolor=:green,
+    label="Traditional Hopfield Network"
+)
+
 savefig(p, "16by16_rand_Weighted_val_$(s)_detail_$(times_done).png")

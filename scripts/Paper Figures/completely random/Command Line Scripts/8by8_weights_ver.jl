@@ -104,7 +104,7 @@ println("took $elp seconds")
 record_data(convergences_64_hn, parameters, "8by8_rand_RawData_HN_Weighted_val_$(s)_detail_$(times_done)")
 
 
-plot(convergences_64_hn["image_count"], [convergences_64_hn["conv_16"]])
+#plot(convergences_64_hn["image_count"], [convergences_64_hn["conv_16"]])
 
 p = plot(convergences_64["image_count"], 
     convergences_64["conv_16"], 

@@ -37,8 +37,8 @@ convergences_256 = Dict{String, Any}(
     "multiple_16" => []
 )
 
-times_done = 1
-image_max = 5
+times_done = 10
+image_max = 2
 
 elp = @elapsed begin
     for p in 1:image_max
@@ -91,7 +91,7 @@ elp = @elapsed begin
             end
         end
         push!(convergences_256_hn["image_count"], p)
-        push!(convergences_256_hn["conv_16"], hn_conv_16)
+        push!(convergences_256_hn["conv_16"], hn_conv_16/times_done)
     end
 end
 println("took $elp seconds")
