@@ -34,6 +34,7 @@ convergences_256 = Dict{String, Any}(
     "conv_16" => [],
     "multiple_16" => []
 )
+
 times_done = 1
 elp = @elapsed begin
     for p in 1:5

@@ -72,14 +72,15 @@ end
 
 println("took $elp seconds")
 
-record_data(convergences_256, parameters, "16by16_hada_RawData_detail_$(times_done)")
+record_data(convergences_256, parameters, "16by16_hada_RawData_V2_detail_$(times_done)")
 
 convergences_256_hn = Dict{String, Any}(
     "image_count" => [],
     "conv_16" => []
 )
 elp = @elapsed begin
-    for p in 1:256
+    for p in 1:image_max
+        println(p)
         hn_conv_16 =0 
         for i in 1:times_done
             parameters["images"] = image_set[shuffle(1:256)[1:p]]
@@ -95,7 +96,7 @@ elp = @elapsed begin
 end
 println("took $elp seconds")
 
-plot(convergences_256_hn["image_count"], [convergences_256_hn["conv_16"]])
+record_data(convergences_256_hn, parameters, "16by16_hada_RawData_HN_detail_$(times_done)")
 
 
 p = plot(convergences_256["image_count"], 
@@ -108,7 +109,7 @@ p = plot(convergences_256["image_count"],
     markersize=3, 
     markercolor=:blue,
     legendtitle="Images Found",
-    label="At least one (1+)"
+    label="V2: At least one (1+)"
 )
 
 plot!(
@@ -117,7 +118,7 @@ plot!(
     marker=:square, 
     markersize=3, 
     markercolor=:orange,
-    label="At least two (2+)"
+    label="V2: At least two (2+)"
 )
 
 plot!(

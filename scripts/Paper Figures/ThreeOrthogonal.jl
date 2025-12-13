@@ -15,7 +15,7 @@ using IterTools
 using Random
 
 
-function experiment_64(params, detail)
+function experiment_64_v2(params, detail)
     conv_64 = 0
     twos_64 = 0 
     others_64 = 0
@@ -57,7 +57,7 @@ function experiment_64(params, detail)
     return [conv_64, twos_64, others_64]
 end 
 
-function experiment_256(params, detail)
+function experiment_256_v2(params, detail)
     conv_256 = 0
     twos_256 = 0 
     others_256 = 0
@@ -99,9 +99,53 @@ function experiment_256(params, detail)
     return [conv_256, twos_256, others_256]
 end 
 
+function experiment_64_hn(params, detail)
+    hn_conv_64 = 0
+    elp = @elapsed begin
+        for i in 1:detail
+            params["images"] = three_random_orthogonal_image(64)
+            r = HN_Solver(parameters)
+            if (reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
+                -1 .*reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
+                hn_conv_64 +=1 
+            end
+        end
+    end
+    println(hn_conv_64)
+    println("took $elp seconds")
+    d_64 =  Dict{String, Any}(
+        "conv_64" => hn_conv_64,
+        )
+    record_data(d_64, params, "ThreeOrthogonal_HN_8x8_Raw_Data_detail_$(detail)")
+    return hn_conv_64
+end
+
+function experiment_256_hn(params, detail)
+    hn_conv_256 = 0
+    elp = @elapsed begin
+        for i in 1:100
+            params["images"] = three_random_orthogonal_image(256)
+            r = HN_Solver(parameters)
+            if (reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
+                -1 .*reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
+                hn_conv_256 +=1 
+            end
+        end
+    end
+    println(hn_conv_256)
+    println("took $elp seconds")
+
+    d_256 =  Dict{String, Any}(
+        "conv_256" => hn_conv_256,
+        )
+    record_data(d_256, params, "ThreeOrthogonal_HN_16x16_Raw_Data_detail_$(detail)")
+
+    return hn_conv_256
+end
+
 sim_time = 4
 steps = 3000
-detail = 1
+detail = 5
 parameters = Dict{String, Any}(
     "images" => three_random_orthogonal_image(64),
     "sim_time" => sim_time,
@@ -116,28 +160,37 @@ parameters = Dict{String, Any}(
 )
 println(length(parameters["images"]))
 
-println("\n 8 by 8 time! \n")
+println("\n V2: 8 by 8 time! \n")
 
-exp_8x8 = experiment_64(parameters, detail)
+exp_8x8_v2 = experiment_64_v2(parameters, detail)
 
-println("\n 16 by 16 time! \n")
+println("\n V2: 16 by 16 time! \n")
 
-exp_16x16 = experiment_256(parameters, detail)
+exp_16x16_v2 = experiment_256_v2(parameters, detail)
+
+println("\n HN: 8 by 8 time! \n")
+
+exp_8x8_hn = experiment_64_hn(parameters, detail)
+
+println("\n HN: 16 by 16 time! \n")
+
+exp_16x16_hn = experiment_256_hn(parameters, detail)
 
 println("\n Graph time! \n")
 
 
 sizes = ["64", "256"]
-convs = [exp_8x8[1], exp_16x16[1]]
-twos = [exp_8x8[2], exp_16x16[2]]
+convs = [exp_8x8_v2[1], exp_16x16_v2[1]]
+twos = [exp_8x8_v2[2], exp_16x16_v2[2]]
+hns = [exp_8x8_hn, exp_16x16_hn]
 
 # Note, others is impossible because of thm 6 proven. 
 
 p = groupedbar(
     sizes, 
-    [convs twos],
-    bar_position = :dodge,
-    labels = ["At least one (1+)" "At least two (2+)"],
+    [convs twos hns],
+    #bar_position = :dodge,
+    labels = ["V2: At least one (1+)" "V2: At least two (2+)" "Traditional Hopfield Networks"],
     xlabel="Pixel Count (N)",
     ylabel="Probability of Convergence",
     legendtitle="Images Found",

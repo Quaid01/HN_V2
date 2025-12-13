@@ -123,7 +123,6 @@ plot!(
     markercolor=:orange,
     label="V2: At least two (2+)"
 )
-@show convergences_64_hn
 
 plot!(
     convergences_64_hn["image_count"],

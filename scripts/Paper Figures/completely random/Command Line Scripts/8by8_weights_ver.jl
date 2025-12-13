@@ -29,22 +29,26 @@ parameters = Dict{String, Any}(
     "initial_stimuli" => [(1,1,1)]
 )
 
+println("\n\n V2: 8 by 8!\n\n")
+
 convergences_64 = Dict{String, Any}(
     "image_count" => [],
     "conv_16" => [],
     "multiple_16" => []
 )
-
-times_done = 1
+times_done = 10
+s= 3750
+max_images = 3
 elp = @elapsed begin
-    for p in 1:20
+    for p in 1:max_images
         println(p)
         conv_16 = 0
         twos_16 = 0 
         multi_16 = 0
         for i in 1:times_done
-            parameters["scaling"] = 1.0
             parameters["images"] = unique_random_binary_images(p,64)
+            k = lambda_gen(parameters["images"],s)
+            parameters["scaling"] = k
             r = HN_Solver(parameters)
             sol_count = 0 
             rots = iterative_rotater_state(r,parameters)
@@ -69,7 +73,38 @@ end
 
 println("took $elp seconds")
 
-record_data(convergences_64, parameters, "8by8_rand_RawData_no_weight_detail_$(times_done)")
+record_data(convergences_64, parameters, "8by8_rand_RawData_V2_Weighted_val_$(s)_detail_$(times_done)")
+
+#HN
+
+println("\n\n2 HN: 8 by 8!\n\n")
+
+convergences_64_hn = Dict{String, Any}(
+    "image_count" => [],
+    "conv_16" => []
+)
+elp = @elapsed begin
+    for p in 1:max_images
+        println(p)
+        hn_conv_16 =0 
+        for i in 1:times_done
+            parameters["images"] = unique_random_binary_images(p,64)
+            r = HN_Solver(parameters)
+            if (reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
+                -1 .*reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
+                hn_conv_16 +=1 
+            end
+        end
+        push!(convergences_64_hn["image_count"], p)
+        push!(convergences_64_hn["conv_16"], hn_conv_16/times_done)
+    end
+end
+println("took $elp seconds")
+
+record_data(convergences_64_hn, parameters, "8by8_rand_RawData_HN_Weighted_val_$(s)_detail_$(times_done)")
+
+
+plot(convergences_64_hn["image_count"], [convergences_64_hn["conv_16"]])
 
 p = plot(convergences_64["image_count"], 
     convergences_64["conv_16"], 
@@ -92,5 +127,14 @@ plot!(
     markercolor=:orange,
     label="At least two (2+)"
 )
-savefig(p, "8by8_rand_no_weight_detail_$(times_done).png")
 
+plot!(
+    convergences_64_hn["image_count"],
+    convergences_64_hn["conv_16"],
+    marker=:diamond, 
+    markersize=3, 
+    markercolor=:green,
+    label="Traditional Hopfield Network"
+)
+
+savefig(p, "8by8_rand_Weighted_val_$(s)_detail_$(times_done).png")
