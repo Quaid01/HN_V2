@@ -39,8 +39,8 @@ convergences_64 = Dict{String, Any}(
     "multiple_16" => []
 )
 
-times_done = 1000
-image_max = 20
+times_done = 100
+image_max = 5
 
 elp = @elapsed begin
     for p in 1:image_max
@@ -88,9 +88,9 @@ elp = @elapsed begin
         hn_conv_16 =0 
         for i in 1:times_done
             parameters["images"] = image_set[shuffle(1:64)[1:p]]
-            r = HN_Solver(parameters)
-            if (reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
-                -1 .*reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
+            r = HN_og(parameters)
+            if (reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
+                -1 .*reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
                 hn_conv_16 +=1 
             end
         end

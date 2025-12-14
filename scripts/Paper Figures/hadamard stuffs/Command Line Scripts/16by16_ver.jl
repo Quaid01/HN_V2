@@ -40,6 +40,8 @@ convergences_256 = Dict{String, Any}(
 times_done = 10
 image_max = 2
 
+println("V2 Time!")
+
 elp = @elapsed begin
     for p in 1:image_max
         println(p)
@@ -74,6 +76,8 @@ println("took $elp seconds")
 
 record_data(convergences_256, parameters, "16by16_hada_RawData_V2_detail_$(times_done)")
 
+println("Hopfield Time!")
+
 convergences_256_hn = Dict{String, Any}(
     "image_count" => [],
     "conv_16" => []
@@ -84,9 +88,9 @@ elp = @elapsed begin
         hn_conv_16 =0 
         for i in 1:times_done
             parameters["images"] = image_set[shuffle(1:256)[1:p]]
-            r = HN_Solver(parameters)
-            if (reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
-                -1 .*reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
+            r = HN_og(parameters)
+            if (reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
+                -1 .*reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
                 hn_conv_16 +=1 
             end
         end

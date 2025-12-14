@@ -86,9 +86,9 @@ elp = @elapsed begin
         hn_conv_16 =0 
         for i in 1:times_done
             parameters["images"] = unique_random_binary_images(p,256)
-            r = HN_Solver(parameters)
-            if (reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
-                -1 .*reshape(r[1],size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
+            r = HN_og(parameters)
+            if (reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"] ||
+                -1 .*reshape(r,size(parameters["images"][1],1),size(parameters["images"][1],1)) in parameters["images"])
                 hn_conv_16 +=1 
             end
         end

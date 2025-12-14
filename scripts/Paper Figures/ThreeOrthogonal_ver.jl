@@ -104,14 +104,14 @@ function experiment_64_hn(params, detail)
     elp = @elapsed begin
         for i in 1:detail
             params["images"] = three_random_orthogonal_image(64)
-            r = HN_Solver(parameters)
-            if (reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
-                -1 .*reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
+            r = HN_og(parameters)
+            if (reshape(r,size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
+                -1 .*reshape(r,size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
                 hn_conv_64 +=1 
             end
         end
     end
-    println(hn_conv_64)
+    println("Conv: $(hn_conv_64)")
     println("took $elp seconds")
     d_64 =  Dict{String, Any}(
         "conv_64" => hn_conv_64,
@@ -123,16 +123,16 @@ end
 function experiment_256_hn(params, detail)
     hn_conv_256 = 0
     elp = @elapsed begin
-        for i in 1:100
+        for i in 1:detail
             params["images"] = three_random_orthogonal_image(256)
-            r = HN_Solver(parameters)
-            if (reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
-                -1 .*reshape(r[1],size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
+            r = HN_og(parameters)
+            if (reshape(r,size(params["images"][1],1),size(params["images"][1],1)) in params["images"] ||
+                -1 .*reshape(r,size(params["images"][1],1),size(params["images"][1],1)) in params["images"])
                 hn_conv_256 +=1 
             end
         end
     end
-    println(hn_conv_256)
+    println("Conv: $(hn_conv_256)")
     println("took $elp seconds")
 
     d_256 =  Dict{String, Any}(
