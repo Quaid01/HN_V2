@@ -1,0 +1,62 @@
+All tests use Two-proportion z-tests
+
+p val thresh = 0.05
+
+Hadamard Bar 8by8 V2 vs graph
+
+conv: 1 no
+twos: 0.87288 no
+
+Insignificant here
+
+hadamard bar 8by8 HN vs graph
+
+conv: 0.03572 yes !!!
+
+Hadamard Bar 16by16 V2 vs graph
+
+conv: 0.28914 no
+twos: 0.62414 no
+
+hadamard bar 16by16 HN vs graph
+
+conv: 0.00452 yes !!!
+
+8by8 hada vs Random V2
+
+p = 2 0.15854 no
+p=9 <0.00001 yes!!!
+p = 19 <0.00001 yes!!!
+
+16by16 hada vs Random V2
+
+p = 5 0.65272 no
+p = 14 <0.00001 yes!!!
+p = 24 <0.00001 yes!!!
+
+16by16 hada V2 vs hn 
+
+p = 5 <0.00001 yes!!!
+p = 14 <0.00001 yes!!!
+p = 24 <0.00001 yes!!!
+
+
+8by8 hada V2 vs hn 
+
+
+p = 2 <0.00001 yes!!!
+p=9 <0.00001 yes!!!
+p = 19 <0.00001 yes!!!
+
+
+16by16 rand V2 vs hn 
+
+p = 5 <0.00001 yes!!!
+p = 14 0.00018 yes!!!
+p = 24 0.00044 yes!!!
+
+8by8 rand V2 vs hn 
+
+p = 2 <0.00001 yes!!!
+p=9 0.24604 no
+p = 19 0.00262 yes!!!

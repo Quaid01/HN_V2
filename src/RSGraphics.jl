@@ -51,11 +51,11 @@ end
 
 # plots a vertical dash at point with the circle coordinate `X`.
 # Only useful to show the zero point or the spin reversion boundary
-show_dash(X ::Float64, dash_len ::Float64, c = :black) = begin
+show_dash(X ::Float64, dash_len ::Float64, color_val = :black) = begin
     (x_pos, y_pos) = get_pos(X)
     Plots.plot!([x_pos, x_pos],
                 [y_pos - dash_len/2, y_pos + dash_len/2],
-                color = c, linewidth = 2, label = false)
+                color = color_val, linewidth = 2, label = false)
 end
 
 spin_point(X ::Float64) = begin 
@@ -68,10 +68,10 @@ show_gen_spin(X ::Float64, s ::Int8, ar_len ::Float64, color ::Symbol) = begin
     ar_size = ar_len
     rad = 0.09
     (x_pos, y_pos) = get_pos(X)
-    Plots.plot!(circle(x_pos, y_pos, rad), fillcolor = :grey, label = false)
+    Plots.plot!(circle(x_pos, y_pos, rad), fillcolor = s == -1 ? :blue : :red, label = false)
     Plots.plot!([x_pos, x_pos],
                 [y_pos - 0 * s * ar_size/2, y_pos + s * ar_size/2],
-                arrow = true, color = color, linewidth = 3, label = false)
+                arrow = true, color = s == -1 ? :blue : :red, linewidth = 3, label = false)
 end
 
 show_main_spin(X ::Float64, s ::Int8) = show_gen_spin(X, s, 0.5, :blue)

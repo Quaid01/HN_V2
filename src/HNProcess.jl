@@ -7,8 +7,7 @@ using PrettyTables
 using Plots
 using Random
 
-export
-    HN_Solver,
+export HN_Solver,
     get_HN_graph, 
     HN_Solver_Traj,
     iterative_rotater_state,
@@ -22,7 +21,9 @@ export
     lowest_cut_states,
     objective_func_G,
     lambda_gen,
-    unique_random_binary_images
+    unique_random_binary_images,
+    get_random_stimulus
+
 
 
 
@@ -248,10 +249,9 @@ function HN_og(params)
         push!(pinned, (pos, stim[3]))
     end
 
-    for i in 1:1000
-        res = Dice.local_search_pinned(model.graph, spins, pinned)
-        spins = res
-    end
+    
+    res = Dice.local_search_pinned(model.graph, spins, pinned)
+    spins = res
     return spins
 end
 
@@ -379,6 +379,7 @@ function lowest_cut_states(state, params; disp = false)
 end
 
 # Generates lambdas which guarentee all images to be equal in size
+# Note that this makes the G function evaluate to 1/4 of scale
 function lambda_gen(images, scale = 1, debug = false)
     A = zeros(length(images),length(images))
     for i in 1:(length(images))
@@ -404,6 +405,28 @@ function unique_random_binary_images(num, cardinality)
         end
     end
     return reshape.(images, Int(sqrt(cardinality)), Int(sqrt(cardinality)))
+end
+
+# I want to do the following:
+# Obtain stimulus by taking random image
+# Acquire exactly half of the pixels and set them
+# randomly fill the rest
+function get_random_stimulus(params, count)
+    stim_temp = shuffle(params["images"])[rand(1:length(params["images"]))]
+    stim_selects = shuffle(1:length(stim_temp))[1:count]
+    stimuli = []
+    for i in stim_selects
+        #println(i)
+        s = (i%size(stim_temp,1), round(Int,floor(i/size(stim_temp,1))+1), stim_temp[i]) #(row, col, state)
+        if s[1] == 0 
+           # println(s)
+            s = (s[1] + size(stim_temp,1), s[2] - 1, s[3])
+           # println(s)
+        end
+        push!(stimuli, s)
+        #println("\n\n\n\n")
+    end
+    return stimuli
 end
 
 end
